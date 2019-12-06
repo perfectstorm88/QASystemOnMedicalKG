@@ -5,14 +5,14 @@
 # Date: 18-10-5
 
 from py2neo import Graph
-
+from config import CONFIG
 class AnswerSearcher:
     def __init__(self):
         self.g = Graph(
-            host="127.0.0.1",
-            http_port=7474,
-            user="lhy",
-            password="lhy123")
+            host=CONFIG.host,
+            http_port=CONFIG.http_port,
+            user=CONFIG.user,  # 数据库user name，如果没有更改过，应该是neo4j
+            password=CONFIG.password)
         self.num_limit = 20
 
     '''执行cypher查询，并返回相应结果'''
@@ -22,6 +22,7 @@ class AnswerSearcher:
             question_type = sql_['question_type']
             queries = sql_['sql']
             answers = []
+            print('[queries]',queries)
             for query in queries:
                 ress = self.g.run(query).data()
                 answers += ress

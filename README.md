@@ -12,19 +12,19 @@ self-implement of disease centered Medical graph from zero to full and sever as 
 
 # 项目最终效果
 话不多少，直接上图。以下两图是实际问答运行过程中的截图：
-![image](https://github.com/liuhuanyong/QABasedOnMedicalKnowledgeGraph/blob/master/img/chat1.png)
+![image](./img/chat1.png)
 
-![image](https://github.com/liuhuanyong/QABasedOnMedicalKnowledgeGraph/blob/master/img/chat2.png)
+![image](./img/chat2.png)
 
 # 项目运行方式
-1、配置要求：要求配置neo4j数据库及相应的python依赖包。neo4j数据库用户名密码记住，并修改相应文件。  
+1、配置要求：要求配置neo4j数据库及相应的python依赖包。neo4j数据库用户名密码记住，并修改config.py的对应配置。  
 2、知识图谱数据导入：python build_medicalgraph.py，导入的数据较多，估计需要几个小时。  
 3、启动问答：python chat_graph.py
 
 # 以下介绍详细方案
 # 一、医疗知识图谱构建
 # 1.1 业务驱动的知识图谱构建框架
-![image](https://github.com/liuhuanyong/QABasedOnMedicalKnowledgeGraph/blob/master/img/kg_route.png)
+![image](./img/kg_route.png)
 
 # 1.2 脚本目录
 prepare_data/datasoider.py：网络资讯采集脚本  
@@ -34,7 +34,7 @@ build_medicalgraph.py：知识图谱入库脚本    　　
 
 # 1.3 医药领域知识图谱规模
 1.3.1 neo4j图数据库存储规模
-![image](https://github.com/liuhuanyong/QABasedOnMedicalKnowledgeGraph/blob/master/img/graph_summary.png)
+![image](./img/graph_summary.png)
 
 1.3.2 知识图谱实体类型
 
@@ -82,7 +82,7 @@ build_medicalgraph.py：知识图谱入库脚本    　　
 
 # 二、基于医疗知识图谱的自动问答
 # 2.1 技术架构
-![image](https://github.com/liuhuanyong/QABasedOnMedicalKnowledgeGraph/blob/master/img/qa_route.png)
+![image](./img/qa_route.png)
 
 # 2.2 脚本结构
 question_classifier.py：问句类型分类脚本  
@@ -198,10 +198,41 @@ chatbot_graph.py：问答程序脚本
 4、本项目可以快速部署，数据已经放在data/medical.json当中，本项目的数据，如侵犯相关单位权益，请联系我删除。本数据请勿商用，以免引起不必要的纠纷。在本项目中的部署上，可以遵循项目运行步骤，完成数据库搭建，并提供搜索服务。  
 5、本项目还有不足：关于疾病的起因、预防等，实际返回的是一大段文字，这里其实可以引入事件抽取的概念，进一步将原因结构化表示出来。这个可以后面进行尝试。    
 
-If any question about the project or me ,see https://liuhuanyong.github.io/
+# neo4j的查询语句
 
+查询与心脏病相关的疾病
+```
+MATCH (m:Disease) where m.name =~ '.*心.*' return m
+```
 
-如有自然语言处理、知识图谱、事理图谱、社会计算、语言资源建设等问题或合作，可联系我：    
-1、我的github项目介绍：https://liuhuanyong.github.io  
-2、我的csdn博客：https://blog.csdn.net/lhy2014  
-3、about me:刘焕勇，中国科学院软件研究所，lhy_in_blcu@126.com  
+查询与心力衰竭推荐的药品（问答：心力衰竭可以吃哪些药？）
+```
+MATCH (m:Disease)-[r:recommand_drug]->(n:Drug) where m.name = '心力衰竭' return m, n
+```
+心力衰竭有什么症状？
+```
+MATCH (m:Disease)-[r:has_symptom]->(n:Symptom) where m.name = '心力衰竭' return m, n
+```
+心动过缓推荐什么药？
+```
+MATCH (m:Disease)-[r:recommand_drug]->(n:Drug) where m.name = '心动过缓' return m, n
+```
+心力衰竭和心动过缓关联症状？
+```
+MATCH (m:Disease)-[r:has_symptom]->(n:Symptom) where m.name = '心力衰竭' or m.name = '心动过缓' return m, n
+MATCH (m:Disease)-[r:has_symptom]->(n:Symptom)where m.name = '心力衰竭' or m.name = '慢性心力衰竭' return m, n
+```
+心力衰竭和心动过缓关联药品？
+```
+MATCH (m:Disease)-[r:recommand_drug]->(n:Drug) where m.name = '心力衰竭' or m.name = '心动过缓' return m, n
+MATCH (m:Disease)-[r:recommand_drug]->(n:Drug) where m.name = '心力衰竭' or m.name = '慢性心力衰竭' return m, n
+```
+心力衰竭,推荐的药品和食谱
+```
+MATCH (m:Disease)-[r:recommand_eat]->(n:Food) where m.name = '心力衰竭' return m, n union all MATCH (m:Disease)-[r:recommand_drug]->(n:Drug) where m.name = '心力衰竭' return m, n
+```
+
+心力衰竭和慢性心力衰竭,推荐的药品和食谱
+```
+MATCH (m:Disease)-[r:recommand_eat]->(n:Food) where m.name = '心力衰竭' or m.name = '慢性心力衰竭' return m, n union all MATCH (m:Disease)-[r:recommand_drug]->(n:Drug) where m.name = '心力衰竭' or m.name = '慢性心力衰竭' return m, n
+```
